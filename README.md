@@ -12,7 +12,6 @@
 </p>
 
 ## Description
-<p align="center">
 The mission of our project is to improve the inferometer optimization system. Based on the generated data and preliminary code created by the group  of [Krzysiek](https://github.com/krzysztofmarchewkaa) and [Paweł](https://github.com/nickerror) in their [repository](https://github.com/nickerror/InterferometrRepo), we hope to estimate the distance of the inferometer from the object with as much precision as possible.
 
 ## Dataset
