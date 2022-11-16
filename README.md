@@ -24,6 +24,10 @@ We are continuing this project as part of passing the Problem Class 1 course tau
 
 ## Project setup
 
+In order to get started please run `make dataset` in the project folder or run python script make_dataset.py located in src/data. 
+
+This generates noise from images in data/raw and using the noise generates artificial images for training into data/processed.
+
 ```
 
 ```
