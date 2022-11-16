@@ -1,4 +1,5 @@
 data/external
 data/interim
-data/processed
-data/raw
+data/processed/*
+data/raw/*
+data/noise/*

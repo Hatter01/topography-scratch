@@ -1,0 +1,7 @@
+Metadata-Version: 2.1
+Name: src
+Version: 0.1.0
+Summary: Surface Topography from Interferences using CNN
+Author: Hatter01
+License: MIT
+License-File: LICENSE
