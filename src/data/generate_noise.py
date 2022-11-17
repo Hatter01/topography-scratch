@@ -50,8 +50,7 @@ def generate_random_noise(num_used_raw_images: int=100, path_to_raw: str=None) -
         else:
             noise_filename = load_random_sample_filename()
         img = cv2.imread(noise_filename)
-        #img = img[4:484,4:644,0]
-        img = img[:,:,0]
+        img = img[4:484,4:644,0]
         noise_image = (noise_image+img)
     noise_image = noise_image/num_used_raw_images
     return noise_image.astype(np.uint8)
