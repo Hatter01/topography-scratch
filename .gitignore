@@ -1,4 +1,4 @@
 data/external
 data/interim
-data/processed/*/
-data/noise/*/
+data/processed/*
+data/noise/*
