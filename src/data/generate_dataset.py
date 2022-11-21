@@ -1,14 +1,13 @@
 from typing import Dict, List, Tuple
 import numpy as np
 import pandas as pd
-import cv2
 import random
 from tqdm import tqdm
 import os
 
 
 from src.data.generate_image import generate_image
-from src.data._models import ImageFileDetails
+from src.data._models import ImageDetails
 
 from src.data.generate_utils import save2directory, save2zip
 
@@ -40,6 +39,11 @@ def parameters2csv(parameters: List[Dict], path: str, parameters_filename: str) 
     """
     df = pd.DataFrame.from_dict(parameters)
     df.to_csv(path+parameters_filename, encoding='utf-8', index=False)
+    
+def count_available_noises(noise_path: str) -> int:
+    if noise_path is None:
+        return 25
+    return len([name for name in os.listdir(noise_path) if os.path.isfile(os.path.join(noise_path, name))])
 
 # TODO: correct docstrings
 def generate_balanced_dataset(path: str,
@@ -53,10 +57,10 @@ def generate_balanced_dataset(path: str,
                               filename: str=None,
                               save_parameters: bool=True,
                               parameters_filename: str="parameters.csv",
-                              noise_path: str="data/noise",
+                              noise_path: str=None,
                               seed: int = None
                               ) -> None:
-    """Generate balanced dataset and save to the output directory or .zip file.
+    """Generate balanced dataset and save to the output directory or .zip file. Noise_path argument need to be passed if you didn't install package via pip.
 
     :param path: Path where output images or compressed .zip file should be stored
     :type path: str
@@ -80,8 +84,10 @@ def generate_balanced_dataset(path: str,
     :type save_parameters: bool, optional
     :param parameters_filename: Name of parameters file, defaults to "parameters.csv"
     :type parameters_filename: str, optional
+    :param noise_path: Path to the noise dataset, optional
+    :type noise_path: str, optional
     :param seed: Set seed to create identical dataset each time.
-    :type parameters_filename: int, optional
+    :type seed: int, optional
     """
     _check_args(path, n_copies, epsilon_step, zipfile, filename)
     
@@ -99,16 +105,28 @@ def generate_balanced_dataset(path: str,
     min_height_center = int(height/2 - max_height_center_shift)
     max_height_center = int(height/2 + max_height_center_shift)
     
+
+    
     img_index = 0
     parameters: List[Dict] = []
     epsilons = np.arange(start=min_epsilon, stop=max_epsilon, step=epsilon_step)
+    
+    available_noises = count_available_noises(noise_path)
+    
+    # create arrays with ring_center position and choosen noises. Those arrays will be always the same if you set the seed. 
+    if seed is not None:
+        np.random.seed(seed)
+    width_centers = np.random.randint(min_width_center, max_width_center+1, len(epsilons)*n_copies)
+    height_centers = np.random.randint(min_height_center, max_height_center+1, len(epsilons)*n_copies)
+    choosen_noises = np.random.randint(0, available_noises, len(epsilons)*n_copies)
+    
     for _epsilon in tqdm(epsilons):
         _epsilon = float("{:.3f}".format(_epsilon))
         for _ in range(n_copies):
-            ring_center = (random.randint(min_width_center, max_width_center),
-                           random.randint(min_height_center, max_height_center))
+            ring_center = (width_centers[img_index],
+                           height_centers[img_index])
             
-            img = generate_image(_epsilon, size, ring_center, brightness, noise_path, seed)
+            img = generate_image(_epsilon, size, ring_center, brightness, noise_path, choosen_noises[img_index])
             img_filename = f"{str(img_index).zfill(5)}.png"
             
             if zipfile:
@@ -117,14 +135,16 @@ def generate_balanced_dataset(path: str,
                 save2directory(img, img_filename ,path)
             
             if save_parameters:
-                img_details = ImageFileDetails(filename=img_filename,
-                                                width=width,
+                img_details = ImageDetails( filename=img_filename,
+                                               width=width,
                                                 height=height,
                                                 epsilon=_epsilon,
                                                 ring_center_width=ring_center[0],
                                                 ring_center_height=ring_center[1],
                                                 min_brightness=brightness[0],
-                                                max_brightness=brightness[1])
+                                                max_brightness=brightness[1],
+                                                used_noise=choosen_noises[img_index]
+                                                )
                 parameters.append(img_details.dict())
             img_index += 1
     parameters2csv(parameters, path, parameters_filename)

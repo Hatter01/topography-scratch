@@ -1,16 +1,11 @@
 import cv2
 import numpy as np
-
-import random
-from typing import List, Tuple
-
-import os
-
+from typing import Tuple
 import pkg_resources
 
 from src.data._models import ImageDetails
 
-def _check_image(size: Tuple[int, int], epsilon: float, ring_center: Tuple[int, int], brightness: Tuple[int, int]) -> None:
+def _check_image(size: Tuple[int, int], epsilon: float, ring_center: Tuple[int, int], brightness: Tuple[int, int], noise_file_index) -> None:
     width, height = size
     width_ring_center, height_ring_center = ring_center
     min_brightness, max_brightness = brightness
@@ -20,7 +15,8 @@ def _check_image(size: Tuple[int, int], epsilon: float, ring_center: Tuple[int, 
               ring_center_width=width_ring_center,
               ring_center_height=height_ring_center,
               min_brightness=min_brightness,
-              max_brightness=max_brightness)
+              max_brightness=max_brightness,
+              used_noise=noise_file_index)
 
 def generate_pure_image(size: Tuple[int, int],
                         epsilon: float, 
@@ -55,20 +51,6 @@ def generate_pure_image(size: Tuple[int, int],
     img = img.astype(np.uint8)
     return img
 
-def load_random_noise_filename_from_package(seed: int=None) -> str:
-    """Load filename of random noise from package sample dataset
-
-    :return: Name of the .png file
-    :rtype: str
-    """
-    random.seed(seed)
-    noise_file_index = random.randint(0, 24)
-    file = pkg_resources.resource_filename(__name__, f"/samples/noise/{noise_file_index}.png")
-    return file
-
-def load_random_noise_filename_from_local(noise_path: str, seed: int=None) -> str:
-    return noise_path+random.choice(os.listdir(noise_path))
-
 def add_noise_to_image(pure_image: np.array, noise: np.array) -> np.array:
     """Add random noise to the pure image
 
@@ -91,9 +73,13 @@ def generate_image(epsilon: float,
                    ring_center: Tuple[int, int]=(320, 240),
                    brightness: Tuple[int, int]=(80, 210),
                    noise_path: str=None,
-                   seed: int=None
+                   noise_file_index: int=0
                     ) -> np.array:
-    """Generate the image
+    """Generate the image. In case of generating single image (using this function) you don't have to pass noise_path argument only if you use this code as a package.
+    If you didn't install it via pip, you have to pass the argument noise_path. It is assumed that noise images in you directory are named with integers started from
+    0 to N, e.g. you have 5 noise image in you directory, so files are named: 0.png, 1.png, ..., 4.png. Noise_file_index argument points to the noise image, by default,
+    it is set to 0. In case of generating single image this implementation might now look reasonable, however in case of generating whole dataset you don't have to care
+    about anything. The code is just written this way that it's easier to use it for generating whole dataset in case of single images.
 
     :param epsilon: Epsilon value
     :type epsilon: float
@@ -103,17 +89,21 @@ def generate_image(epsilon: float,
     :type ring_center: Tuple[int, int], optional
     :param brightness: Range of brightness, defaults to (80, 210)
     :type brightness: Tuple[int, int], optional
+    :param noise_path: path to noise dataset, defaults to None
+    :type noise_path: str, optional
+    :param noise_file_index: Index (filename) of noise image used to generate image, optional
+    :type noise_file_index: int, optional
     :return: 2D array which represents an image
     :rtype: np.array
     """
-    _check_image(size, epsilon, ring_center, brightness)
+    _check_image(size, epsilon, ring_center, brightness, noise_file_index)
     
     
     pure_image = generate_pure_image(size, epsilon, ring_center, brightness)
     if noise_path:
-        noise_image_filename = load_random_noise_filename_from_local(noise_path=noise_path, seed=seed)
+        noise_image_filename = f"{noise_path}{noise_file_index}.png"
     else:
-        noise_image_filename = load_random_noise_filename_from_package(seed)
+        noise_image_filename = pkg_resources.resource_filename(__name__, f"/samples/noise/{noise_file_index}.png")
     
     noise_image = cv2.imread(noise_image_filename)
     
@@ -123,4 +113,4 @@ def generate_image(epsilon: float,
     return noised_image.astype(np.uint8)
 
 if __name__ == "__main__":
-    noised_image = generate_image(epsilon=0.4)
+    pass

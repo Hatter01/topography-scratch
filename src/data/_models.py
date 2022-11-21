@@ -1,4 +1,5 @@
-from pydantic import BaseModel, validator
+from typing import Optional
+from pydantic import BaseModel, validator, root_validator
 
 class ImageDetails(BaseModel):
     width: int
@@ -8,6 +9,10 @@ class ImageDetails(BaseModel):
     ring_center_height: int
     min_brightness: int
     max_brightness: int
+    used_noise: int
+    filename: Optional[str]
+    
+    
     
     @validator('width')
     def _check_width(cls, width) -> None:
@@ -76,14 +81,29 @@ class ImageDetails(BaseModel):
             raise ValueError("Epsilon must be in range <0.0; 1.0>")
         return epsilon
     
-
-class ImageFileDetails(ImageDetails):
-    filename: str
+    #TODO: Find out why validation of filename result in None value in dict() of the object.
     
-    @validator('filename')
-    def _check_filename(cls, filename):
-        if filename[-4:] != ".png":
-            raise ValueError("Incorrect filename. Please provide filename with extension .png, e.g. \"image.png\".")
+    # @validator('filename')
+    # def _check_filename(cls, filename):
+    #     if filename[-4:] != ".png":
+    #         raise ValueError("Incorrect filename. Please provide filename with extension .png, e.g. \"image.png\".")
+    
+    
+    
+
+# class ImageFileDetails(ImageDetails):
+    
+    
+#     @root_validator(pre=True)
+#     def check_card_number_omitted(cls, values):
+#         # assert 'card_number' not in values, 'card_number should not be included'
+#         return values
+    
+    
+        
+#     class Config:
+#         validate_assignment = True
+#         use_enum_values = True
     
     
     
