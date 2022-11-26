@@ -7,34 +7,52 @@ import time
 import pandas as pd
 from pathlib import Path, PurePath
 import numpy as np
+from tqdm import tqdm
 
 project_dir = Path(__file__).resolve().parents[2]
 parameters_path = project_dir.joinpath(PurePath("data/processed/parameters.csv")) 
 parameters = pd.read_csv(parameters_path)
 
-am = AnalyticalMathodNew()
+old = AnalyticalMathodOld()
+new = AnalyticalMathodNew()
 
-mae = 0
-i = 0
-for index, image in parameters.iterrows():
+mae_old_method = 0
+mae_new_method = 0
+time_old_method = 0
+time_new_method = 0
+print("TESTING:")
+for index, image in tqdm(parameters.iterrows()):
 
     file_path = str(project_dir.joinpath(PurePath("data/processed/" + image["filename"])))
     img = cv2.imread(file_path, cv2.IMREAD_GRAYSCALE)
-    # "x_y", "distances_from_x", "longer_sequence", "distances", "peaks_plot"
-    eps = am.calculate_epsilon(img, check=["maxima", "x_y", "distances_from_x", "longer_sequence", "distances", "peaks_plot"], blur_size=10, vector_filter_size=20)
-    print(eps)
-    print()
+    
     real_eps = image["epsilon"]
     real_x = image["ring_center_width"]
     real_y = image["ring_center_height"]
-    x = np.abs(real_eps - eps)
-    mae += min(x, 1 - x)
-    print(real_eps, eps, min(x, 1 - x), real_x, real_y, "\n")
-    i = index
-    if min(x, 1 - x) > 0.1:
-        break
 
-print("MAE", mae/(i))
+    # posiible parameters to check
+    # "x_y", "distances_from_x", "longer_sequence", "distances", "peaks_plot", "plot"
+
+    time_old_method -= time.time() 
+    eps_old = old.calculate_epsilon(img, check=[], blur_size=10, vector_filter_size=20)
+    time_old_method += time.time() 
+    x_old = np.abs(real_eps - eps_old)
+    mae_old_method += min(x_old, 1 - x_old)
+
+    time_new_method -= time.time() 
+    eps_new = new.calculate_epsilon(img, check=[], blur_size=20, vector_filter_size=20)
+    time_new_method += time.time() 
+    x_new = np.abs(real_eps - eps_new)
+    mae_new_method += min(x_new, 1 - x_new)
+
+print()
+print("OLD METHOD:")
+print("MAE: ", mae_old_method/len(parameters))
+print("IMAGES PER SECOND: ", len(parameters)/time_old_method)
+print()
+print("NEW METHOD:")
+print("MAE: ", mae_new_method/len(parameters))
+print("IMAGES PER SECOND: ", len(parameters)/time_new_method)
 
 
 

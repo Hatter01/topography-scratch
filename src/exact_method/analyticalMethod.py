@@ -30,10 +30,6 @@ class AnalyticalMathod:
 
         # find maxima of the function 
         maxima = find_peaks(vector, distance=5)[0]
-        if mode == "y":
-            minima = find_peaks(-vector, distance=5)[0]
-            if len(minima) > len(maxima):
-                maxima = minima
 
         if "maxima" in check:
             print("Maxima")
@@ -51,9 +47,16 @@ class AnalyticalMathod:
             best1 = 0
             best2 = len(distances) - 1 
             best_score = np.Inf
-            while x2 - x1 >= 5:
-                vec1 = distances[x1:x1+3]
-                vec2 = distances[x2-2:x2+1][::-1]
+            tres = 3
+            if mode == 'x':
+                tres == 5
+            while x2 - x1 >= tres:
+                vec1 = distances[x1:x1+2]
+                vec2 = distances[x2-1:x2+1][::-1]
+                if mode == 'x':
+                    vec1 = distances[x1:x1+3]
+                    vec2 = distances[x2-2:x2+1][::-1]
+                
                 difference = np.sum(np.abs(vec1-vec2))
                 if difference <= 3:
                     return x1, x2
@@ -68,8 +71,6 @@ class AnalyticalMathod:
             return best1, best2
 
         x1, x2 = get_x1_x2(distances)
-        print(x1,x2)
-        print(maxima[x1], maxima[x2])
         return maxima, distances, (maxima[x1] + maxima[x2+1]) // 2
 
         # # select top 2 biggest distances
@@ -130,11 +131,33 @@ class AnalyticalMathod:
             print("The longer part")
             print(longer_sequence)
 
-        if longer_sequence[1] < longer_sequence[2] - longer_sequence[1]:
+        if 2*longer_sequence[1] < longer_sequence[2]:
             longer_sequence = longer_sequence[2:]
-        if longer_sequence[0] < longer_sequence[1] - longer_sequence[0]:
+        if 1.8*longer_sequence[0] < longer_sequence[1]:
             longer_sequence = longer_sequence[1:]
 
+        
+        x = np.arange(1, len(longer_sequence) + 1)
+        x = np.expand_dims(x, axis=1)
+        y = longer_sequence ** 2
+        regressor = LinearRegression().fit(x,y)
+
+        ## check regression score to find out if 
+        ## the line is straight enough
+        for _ in range(2): 
+            if regressor.score(x,y)<=0.9998:
+                sequence_tmp = longer_sequence[:-1]
+                x_tmp = np.arange(1, len(sequence_tmp) + 1)
+                x_tmp = np.expand_dims(x_tmp, axis=1)
+                y_tmp = sequence_tmp ** 2
+                regressor_tmp = LinearRegression().fit(x_tmp,y_tmp)
+                ## if by removing last ring we could improve the
+                ## straightness of our line
+                if regressor_tmp.score(x_tmp, y_tmp)>regressor.score(x,y):
+                    longer_sequence = sequence_tmp
+                    x = x_tmp
+                    y = y_tmp
+                    regressor = regressor_tmp
         
         if "longer_sequence" in check:
             print(longer_sequence)
@@ -144,11 +167,6 @@ class AnalyticalMathod:
             plt.plot(np.arange(1, len(longer_sequence)+1), (longer_sequence)**2)
             plt.savefig("plot.png")
 
-        x = np.arange(1, len(longer_sequence) + 1)
-        x = np.expand_dims(x, axis=1)
-        #longer_sequence =np.array([ 25, 130, 184, 226, 261, 292])
-        y = longer_sequence ** 2
-        regressor = LinearRegression().fit(x,y)
 
         intercept = regressor.predict([[0]])
         slope = regressor.coef_
@@ -190,7 +208,8 @@ class AnalyticalMathodOld(AnalyticalMathod):
         
         img_strip_y = np.transpose(img[:, x - 20: x + 20])
         _,_,y = self.detect_middle_x(img=img_strip_y, 
-            filter_size=vector_filter_size
+            filter_size=vector_filter_size,
+            mode="y"
             #check=["x_y", "distances", "maxima", "distances_from_x", "longer_sequence", "peaks_plot", "strip"]
         )
 
