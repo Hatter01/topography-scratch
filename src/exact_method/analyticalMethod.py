@@ -45,20 +45,43 @@ class AnalyticalMathod:
             print("Distances")
             print(distances)
 
-        # select top 2 biggest distances
-        x1, x2 = (-distances).argsort()[:2]
-        small_x = np.min([x1, x2])
-        big_x = np.max([x1, x2])
+        def get_x1_x2(distances):
+            x1 = 0
+            x2 = len(distances) - 1 
+            best1 = 0
+            best2 = len(distances) - 1 
+            best_score = np.Inf
+            while x2 - x1 >= 5:
+                vec1 = distances[x1:x1+3]
+                vec2 = distances[x2-2:x2+1][::-1]
+                difference = np.sum(np.abs(vec1-vec2))
+                if difference <= 3:
+                    return x1, x2
+                if difference < best_score:
+                    best1 = x1
+                    best2 = x2
+                    best_score = difference
+                if np.sum(vec1) > np.sum(vec2):
+                    x2 -=1
+                else:
+                    x1 +=1
+            return best1, best2
+
+        x1, x2 = get_x1_x2(distances)
+        print(x1,x2)
+        print(maxima[x1], maxima[x2])
+        return maxima, distances, (maxima[x1] + maxima[x2+1]) // 2
+
+        # # select top 2 biggest distances
+        # x1, x2 = (-distances).argsort()[:2]
+        # small_x = np.min([x1, x2])
+        # big_x = np.max([x1, x2])
         
-        ## need change
-        # if small_x == 0:
-        #     return maxima, distances, (maxima[small_x + 1])
-        # if big_x == len(distances)-1 :
-        #     return maxima, distances, (maxima[big_x - 1])
-        if np.fabs(distances[small_x + 1]-distances[big_x - 1]) == 0 or np.fabs(distances[small_x-1]-distances[big_x+1]) < 5:
-            return maxima, distances, (maxima[small_x] + maxima[big_x+1]) // 2
-        else:
-            return maxima, distances, (maxima[x1 - 1] + maxima[x1 + 2]) // 2
+        
+        # if np.fabs(distances[small_x + 1]-distances[big_x - 1]) == 0 or np.fabs(distances[small_x-1]-distances[big_x+1]) < 5:
+        #     return maxima, distances, (maxima[small_x] + maxima[big_x+1]) // 2
+        # else:
+        #     return maxima, distances, (maxima[x1 - 1] + maxima[x1 + 2]) // 2
 
     def middle_idx(self, vector):
         i1, i2 = 0, len(vector) - 1
@@ -167,8 +190,9 @@ class AnalyticalMathodOld(AnalyticalMathod):
         
         img_strip_y = np.transpose(img[:, x - 20: x + 20])
         _,_,y = self.detect_middle_x(img=img_strip_y, 
-            filter_size=vector_filter_size,
-            check=["x_y", "distances", "maxima", "distances_from_x", "longer_sequence", "peaks_plot", "strip"])
+            filter_size=vector_filter_size
+            #check=["x_y", "distances", "maxima", "distances_from_x", "longer_sequence", "peaks_plot", "strip"]
+        )
 
         img_strip_x =  img[y-20 : y+20, :]
         _,_,x = self.detect_middle_x(img=img_strip_x, filter_size=vector_filter_size)
