@@ -30,7 +30,7 @@ for index, image in tqdm(parameters.iterrows()):
     real_x = image["ring_center_width"]
     real_y = image["ring_center_height"]
 
-    # posiible parameters to check
+    # possible parameters to check
     # "x_y", "distances_from_x", "longer_sequence", "distances", "peaks_plot", "plot"
 
     time_old_method -= time.time() 
