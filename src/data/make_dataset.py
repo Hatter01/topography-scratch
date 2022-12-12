@@ -27,8 +27,8 @@ def main(input_filepath=None, output_filepath=None):
 
     print(noise)
 
-    generate_noise_dataset(path=noise, path_to_raw=raw, seed=23)
-    generate_balanced_dataset(path=processed, n_copies=1, noise_path=noise, seed=23)
+    generate_noise_dataset(path=noise, size = (224,224), path_to_raw=raw, seed=23)
+    generate_balanced_dataset(path=processed, size = (224,224), n_copies=1, noise_path=noise, seed=23)
 
 
 if __name__ == '__main__':

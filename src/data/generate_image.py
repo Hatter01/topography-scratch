@@ -3,7 +3,7 @@ import numpy as np
 from typing import Tuple
 import pkg_resources
 
-from src.data._models import ImageDetails
+from _models import ImageDetails
 
 def _check_image(size: Tuple[int, int], epsilon: float, ring_center: Tuple[int, int], brightness: Tuple[int, int], noise_file_index) -> None:
     width, height = size

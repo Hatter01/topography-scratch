@@ -6,10 +6,9 @@ from tqdm import tqdm
 import os
 
 
-from src.data.generate_image import generate_image
-from src.data._models import ImageDetails
-
-from src.data.generate_utils import save2directory, save2zip
+from generate_image import generate_image
+from _models import ImageDetails
+from generate_utils import save2directory, save2zip
 
 
 

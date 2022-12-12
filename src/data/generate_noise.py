@@ -7,7 +7,7 @@ from tqdm import tqdm
 import os
 import pkg_resources
 
-from src.data.generate_utils import save2directory, save2zip
+from generate_utils import save2directory, save2zip
 
 
 def _check_args(num_images: int, num_used_raw_image: int):
