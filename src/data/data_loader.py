@@ -6,7 +6,7 @@ from pathlib import Path, PurePath
 
 #stransformation on the image (resizing)
 def transform_image(path_images,file_name):
-    img = cv2.imread(path_images + file_name)
+    img = cv2.imread(path_images + file_name, cv2.IMREAD_GRAYSCALE)
     return img
 
 def load_dataset():
@@ -20,7 +20,7 @@ def load_dataset():
     y = np.array(dataset['epsilon'])
     X = np.array(list(map(lambda file_name:  transform_image(path_images,file_name) , dataset["filename"])))
 
-    print("X[0].shape", X[0].shape)
+    print("X.shape", X.shape)
     return (X,y)
 
 load_dataset()
